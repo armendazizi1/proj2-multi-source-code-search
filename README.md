@@ -5,4 +5,8 @@
 
 
 ### Training of search engines
-  `python3 search-data.py <query>`
+  `python3 search_data.py <query>`
+
+
+### Evaluating of search engines
+  `python3 prec-recall.py`  

@@ -63,7 +63,7 @@ def main():
                 # print(name)
                 fileName = os.path.join(root, name)
 
-                shortPath = root+name
+                shortPath = root+"/"+name
                 file = open(fileName, 'r').read()
                 astree = ast.parse(file);
                 index_counter = visitTree(astree, index_counter, df, shortPath)
