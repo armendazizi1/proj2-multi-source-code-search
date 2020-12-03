@@ -78,7 +78,7 @@ def lsi_similarity(dictionary, corpus_lsi, tfidf, model, query):
     index = MatrixSimilarity.load('./deerwester.index')
     similarity = index[vec_lsi]
 
-    return similarity
+    return similarity, index
 
 
 def read_corpus(corpus):
@@ -135,7 +135,7 @@ def get_corpus():
 
 def main():
     print(sys.argv[1])
-    # query = "Optimizer that implements the Adadelta algorithm"
+    # query = "AST Visitor that looks for specific API usage without editing anything"
     # print(df['name'])
     query = sys.argv[1]
     corpus, df = get_corpus()

@@ -1,13 +1,18 @@
 from search_data import get_corpus, freq, tf_idf, lsi, doc2vec, read_corpus, top_five, top_five_doc2vec, \
     freq_similarity, tf_idf_similarty, lsi_similarity, doc2vec_similarity
 
+import matplotlib.pyplot as plt
+import seaborn as sns
+from matplotlib import pyplot
+from sklearn.manifold import TSNE
+import pandas as pd
 
 def extract_ground_truth():
     queries = []
     entity_names = []
     file_names = []
 
-    file1 = open('ground-truth.txt', 'r')
+    file1 = open('ground-truth-unique.txt', 'r')
     count = 0
     while True:
         # Get next line from file
@@ -50,6 +55,11 @@ def main():
 
 
     search_engines = ["FREQ","TF-IDF", "LSI", "Doc2Vec"]
+    # search_engines = ["LSI"]
+
+
+    lsi_vectors = []
+    hues = []
 
     ####### EVALUATING THE SEARCH ENGINES
     for search_engine in search_engines:
@@ -68,9 +78,33 @@ def main():
             elif (search_engine == "TF-IDF"):
                 tf_idf_sims = tf_idf_similarty(tf_idf_dictionary, tf_idf_index, query)
                 topFive = top_five(tf_idf_sims, df)
+
+
+
             elif (search_engine == "LSI"):
-                lsi_sims = lsi_similarity(lsi_dictionary, corpus_lsi, tfidf, lsi_model, query)
+                lsi_sims, lsi_index = lsi_similarity(lsi_dictionary, corpus_lsi, tfidf, lsi_model, query)
                 topFive = top_five(lsi_sims, df)
+
+
+                corpus_bow = lsi_dictionary.doc2bow(query.lower().split())
+                vector = lsi_model[corpus_bow]
+                similarity = abs(lsi_index[vector])
+
+                embedding_lsi = [lsi_model[corpus_bow]]
+
+                sorted_similarities = sorted(range(len(similarity)), key=lambda k: similarity[k], reverse=True)
+                embedding_lsi = embedding_lsi + [corpus_lsi[idx] for idx in sorted_similarities[:5]]
+
+
+                for vector in embedding_lsi:
+                    vectors = []
+                    for idx, value in vector:
+                        # print(idx, value)
+                        vectors.append(value)
+                    lsi_vectors.append(vectors)
+
+                hues.extend([query] * 6)
+
 
             elif (search_engine == "Doc2Vec"):
                 d2v_similarity = doc2vec_similarity(d2v_model, query)
@@ -101,10 +135,30 @@ def main():
 
         print("\n", search_engine, " end...")
 
-
+    produce_plot('LSI', lsi_vectors, hues)
     # print(queries)
 
 
+
+def produce_plot(img_name, vectors, hues):
+
+    tsne = TSNE(n_components=2, verbose=0, perplexity=2, n_iter=3000)
+    tsne_results = tsne.fit_transform(vectors)
+    df = pd.DataFrame()
+    df['x'] = tsne_results[:, 0]
+    df['y'] = tsne_results[:, 1]
+    pyplot.figure(figsize=(9, 9))
+    print("len",len(hues))
+    sns.scatterplot(
+        x="x", y="y",
+        hue=hues,
+        palette=sns.color_palette("husl", n_colors=10),
+        data=df,
+        legend="full",
+        alpha=1.0
+    )
+
+    pyplot.savefig(img_name + ".png")
 
 if __name__ == "__main__":
     main()
