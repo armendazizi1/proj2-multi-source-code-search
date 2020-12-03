@@ -140,7 +140,7 @@ def main():
 
 
 
-def produce_plot(img_name, vectors, hues):
+def produce_plot(search_engine, vectors, hues):
 
     tsne = TSNE(n_components=2, verbose=0, perplexity=2, n_iter=3000)
     tsne_results = tsne.fit_transform(vectors)
@@ -158,7 +158,7 @@ def produce_plot(img_name, vectors, hues):
         alpha=1.0
     )
 
-    pyplot.savefig(img_name + ".png")
+    pyplot.savefig(search_engine + ".png")
 
 if __name__ == "__main__":
     main()
