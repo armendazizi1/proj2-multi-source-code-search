@@ -9,6 +9,12 @@ from gensim.similarities import SparseMatrixSimilarity, MatrixSimilarity
 from gensim.models import TfidfModel, LsiModel, doc2vec
 import re
 
+def print_top5(top5):
+    for i in range(len(top5)):
+        print('#', i + 1, '  Python entity: ', top5[i][1])
+        print('File: ', top5[i][2])
+        print('Line: ', top5[i][3])
+        print('Comment: ', top5[i][5], '\n')
 
 def top_five(similarity, df):
     sorted_similarities = sorted(range(len(similarity)), key=lambda k: similarity[k], reverse=True)
@@ -74,8 +80,8 @@ def lsi_similarity(dictionary, corpus_lsi, tfidf, model, query):
     vec_lsi = model[tfidf[vec_bow]]
 
     index = MatrixSimilarity(corpus_lsi)
-    index.save('./deerwester.index')
-    index = MatrixSimilarity.load('./deerwester.index')
+    # index.save('./deerwester.index')
+    # index = MatrixSimilarity.load('./deerwester.index')
     similarity = index[vec_lsi]
 
     return similarity, index
@@ -142,42 +148,41 @@ def main():
 
     # print(corpus)
 
-    print("\nFreq start...")
+    print("\nFreq start...\n")
     freq_dictionary, freq_index = freq(corpus)
     freq_sims = freq_similarity(freq_dictionary, freq_index, query)
     top5 = top_five(freq_sims, df)
-    for i in top5:
-        print(i)
+    print_top5(top5)
     print("Freq end...\n")
 
-    print("\nTf_idf start...")
+    print("\nTf_idf start...\n")
     tf_idf_dictionary, tf_idf_index = tf_idf(corpus)
     tf_idf_sims = tf_idf_similarty(tf_idf_dictionary, tf_idf_index, query)
 
     top5 = top_five(tf_idf_sims, df)
-    for i in top5:
-        print(i)
+    print_top5(top5)
     print("Tf_idf end...\n")
 
-    print("\nLSI start...")
-
+    print("\nLSI start...\n")
     lsi_dictionary, corpus_lsi, tfidf, lsi_model = lsi(corpus)
-    lsi_sims = lsi_similarity(lsi_dictionary, corpus_lsi, tfidf, lsi_model, query)
+    lsi_sims, lsi_index = lsi_similarity(lsi_dictionary, corpus_lsi, tfidf, lsi_model, query)
 
     top5 = top_five(lsi_sims, df)
-    for i in top5:
-        print(i)
+    print_top5(top5)
     print("LSI end...\n")
 
-    print("\nDoc2Vec start...")
+    print("\nDoc2Vec start...\n")
     d2v_model = doc2vec(corpus)
     d2v_similarity = doc2vec_similarity(d2v_model, query)
 
     topfive = top_five_doc2vec(d2v_similarity, df)
 
-    for doc in topfive:
-        print(doc)
+    print_top5(topfive)
     print("Doc2Vec end...\n")
+
+
+
+
 
 
 if __name__ == "__main__":
