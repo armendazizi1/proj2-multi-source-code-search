@@ -23,7 +23,6 @@ def extract_ground_truth():
         if not line:
             break
         if line.strip() == '':
-            # print('empty')
             continue
 
         if count == 0:
@@ -53,17 +52,16 @@ def main():
 
     d2v_model = doc2vec(corpus)
 
-    search_engines = ["FREQ","TF-IDF", "LSI", "Doc2Vec"]
+    search_engines = ["FREQ", "TF-IDF", "LSI", "Doc2Vec"]
     # search_engines = ["Doc2Vec"]
 
     lsi_vectors = []
     doc2vec_vectors = []
     hues = []
 
-
     ## get hues
-    for query in queries:
-        hues.extend([query] * 6)
+    for function in entity_names:
+        hues.extend([function] * 6)
 
     ####### EVALUATING THE SEARCH ENGINES
     for search_engine in search_engines:
@@ -75,7 +73,6 @@ def main():
         ground_truth_counter = 0
 
         for query in queries:
-            # print("\nquery: ", query, '\n')
             if (search_engine == "FREQ"):
                 freq_sims = freq_similarity(freq_dictionary, freq_index, query)
                 topFive = top_five(freq_sims, df)
@@ -90,9 +87,6 @@ def main():
                 lsi_sims, lsi_index = lsi_similarity(lsi_dictionary, corpus_lsi, tfidf, lsi_model, query)
                 topFive = top_five(lsi_sims, df)
 
-                ## PRINT TOP 5
-                # print_top5(topFive)
-
                 corpus_bow = lsi_dictionary.doc2bow(query.lower().split())
                 vector = lsi_model[corpus_bow]
                 similarity = abs(lsi_index[vector])
@@ -105,7 +99,6 @@ def main():
                 for vector in embedding_lsi:
                     vectors = []
                     for idx, value in vector:
-                        # print(idx, value)
                         vectors.append(value)
                     lsi_vectors.append(vectors)
 
@@ -114,9 +107,6 @@ def main():
             elif (search_engine == "Doc2Vec"):
                 d2v_similarity = doc2vec_similarity(d2v_model, query)
                 topFive = top_five_doc2vec(d2v_similarity, df)
-
-                ## PRINT TOP5
-                # print_top5(topFive)
 
                 vector = d2v_model.infer_vector(query.lower().split())
                 sorted_similarities = [doc for doc in d2v_model.docvecs.most_similar([vector], topn=5)]
@@ -130,10 +120,6 @@ def main():
                 for vec in embedding_doc2vec:
                     doc2vec_vectors.append(vec)
 
-
-            # for i in topFive:
-            #     print(i)
-
             for i in range(len(topFive)):
                 entity = topFive[i][1]
                 file = topFive[i][2]
@@ -141,11 +127,7 @@ def main():
                     correct_answers += 1
                     precision += 1 / (i + 1)
                     break
-            # print("prec: ", precision)
-            # print()
             ground_truth_counter += 1
-
-        # print("correct answers: ",correct_answers)
 
         average_precision = precision / len(queries)
         recall = correct_answers / (len(queries))
@@ -157,7 +139,6 @@ def main():
 
     produce_plot('LSI', lsi_vectors, hues)
     produce_plot('DOC2VEC', doc2vec_vectors, hues)
-    # print(queries)
 
 
 def produce_plot(search_engine, vectors, hues):
@@ -167,7 +148,6 @@ def produce_plot(search_engine, vectors, hues):
     df['x'] = tsne_results[:, 0]
     df['y'] = tsne_results[:, 1]
     pyplot.figure(figsize=(9, 9))
-    print("len", len(hues))
     sns.scatterplot(
         x="x", y="y",
         hue=hues,
@@ -176,6 +156,14 @@ def produce_plot(search_engine, vectors, hues):
         legend="full",
         alpha=1.0
     )
+
+    ## Got help from Gregory Wullimann for this function to add label for each cluster
+    for idx, xy in enumerate(zip(tsne_results[:, 0], tsne_results[:, 1])):
+        if idx % 6 != 0:
+            continue
+        pyplot.annotate(hues[idx], xy=xy, xytext=(-2, 2),
+                        textcoords='offset points', ha='right', va='bottom',
+                        fontsize=5)
 
     pyplot.savefig(search_engine + ".png")
 

@@ -124,7 +124,6 @@ def get_corpus():
                 removeStopWords = [w for w in splitted if w not in stopWords]
                 comments = []
                 if (pd.notna(row['comment'])):
-                    # print(row['comment'])
                     comments = row['comment'].lower()
 
                     comments = comments.replace('_', ' ')
@@ -132,7 +131,6 @@ def get_corpus():
                     comments = comments.translate(str.maketrans('', '', string.punctuation))
                     comments = comments.split()
 
-                # print(comments)
                 splitted_words.extend(removeStopWords)
                 splitted_words.extend(comments)
         corpus.append(splitted_words)
@@ -140,13 +138,8 @@ def get_corpus():
 
 
 def main():
-    print(sys.argv[1])
-    # query = "AST Visitor that looks for specific API usage without editing anything"
-    # print(df['name'])
     query = sys.argv[1]
     corpus, df = get_corpus()
-
-    # print(corpus)
 
     print("\nFreq start...\n")
     freq_dictionary, freq_index = freq(corpus)
@@ -179,8 +172,6 @@ def main():
 
     print_top5(topfive)
     print("Doc2Vec end...\n")
-
-
 
 
 
